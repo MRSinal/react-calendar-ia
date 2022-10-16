@@ -1,0 +1,67 @@
+body{
+    min-height: 100vh;
+    background-color: purple;
+    font-family:Georgia, 'Times New Roman', Times, serif;
+}
+.container {
+    width: 360px;
+	height: 580px;
+	padding: 80px 40px;
+	border-radius: 10px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+    background-color: white;
+}
+input{
+    font-size: 15px;
+	width: 100%;
+	outline: none;
+	background: none;
+	padding: 0 5px;
+	height: 40px;
+    font-family:Georgia, 'Times New Roman', Times, serif;
+}
+.usernameInput{
+    margin-bottom: 20px;
+}
+.container h1{
+	text-align: center;
+	margin-bottom: 60px;
+}
+
+.container .signup {
+    width: 100%;
+	height: 40px;
+    display: flex;
+    background-image: linear-gradient(120deg, #3498db, #8e44ad);
+    background-size: 200%;
+    color: white;
+    font-size: 20px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    margin-top: 1rem;
+    cursor: pointer;
+    border: 0px;
+    font-family:Georgia, 'Times New Roman', Times, serif;
+}
+.container .login {
+    width: 80%;
+	height: 30px;
+    display: flex;
+    background-image: linear-gradient(120deg, #34db90, #8e44ad);
+    background-size: 200%;
+    color: white;
+    font-size: 20px;
+    justify-content: center;
+    align-items: center;
+    margin-left: 2.3rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+    cursor: pointer;
+}
+a:link{
+    text-decoration: none!important;
+}
