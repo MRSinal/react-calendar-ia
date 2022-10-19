@@ -6,12 +6,13 @@ import { CalendarHeader } from './CalendarHeader.jsx'
 import Day from './Day'
 import { NewEventModal } from './NewEventModal.jsx'
 import { DeleteEventModal } from './DeleteEventModel.jsx'
-import {AddingNewChild } from './AddingNewChild.jsx'
+import { AddingNewChild } from './AddingNewChild.jsx'
 import { set, ref, getDatabase, getAuth } from 'firebase/database'
-import {query, collection, onSnapshot, QuerySnapshot} from 'firebase/firestore'
+import { query, collection, onSnapshot, getFirestore, addDoc, getDocs, where } from 'firebase/firestore'
 export default function () {
   const db = getDatabase()
-  
+  const db2 = getFirestore()
+
   const navigate = useNavigate()
   const handleSignOut = () => {
     signOut(auth).then(() => {
@@ -25,41 +26,58 @@ export default function () {
   const [click, setClick] = useState()
   const [days, setDays] = useState([])
   const [events, setEvents] = useState([]); // need to write data here as useEffect uses it 
-  const event2 = []
-  const [user, setUser] = useState('')
- 
+  const [todos, setTodos] = useState([])
   
 
-  const writeUserData = (title, note) => {
+
+  const writeUserData2 = (title, note) => {
     const date = click.replace("/", "")
     const uid = date.replace("/", "")
     const reference = ref(db, `/${auth.currentUser.uid}/${uid}`)
     set(reference, {
       event: title,
-      date : `${click}`,
-      note : note,
+      date: `${click}`,
+      note: note,
       uid: uid
     })
-    
+
   }
+  const writeUserData = (title, note) => {
+
+    const date = click.replace("/", "")
+    const uid = date.replace("/", "")
+    addDoc(collection(db2, 'todos'), {
+      event: title,
+      date: `${click}`,
+      note: note,
+      uid: uid
+    })
+  }
+  console.log(days)
   const eventForDate = (date) => {
-    
-    
+    var arr = []
+    for(var i = 0; i< todos.length; i++){
+      if(todos[i]?.date === date){
+        return todos[i]
+      }
+    }
   }
-
-
- 
-
-
-
   useEffect(() => {
-    const q = query(collection(db, 'todos'))
+    
     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dt = new Date();
 
     if (nav !== 0) {
       dt.setMonth(new Date().getMonth() + nav);
     }
+    const q = query(collection(db2, "todos"))
+    const unsubscribe = onSnapshot(q, (querySnapshot) =>{
+      let todosArr = []
+      querySnapshot.forEach((doc) =>{
+        todosArr.push(doc.data())
+      })
+      setTodos(todosArr)
+    })
 
     const day = dt.getDate();
     const month = dt.getMonth();
@@ -81,7 +99,7 @@ export default function () {
 
     for (let i = 1; i <= paddingDays + daysInMonth; i++) {
       const dayString = `${month + 1}/${i - paddingDays}/${year}`;
-
+      
       if (i > paddingDays) {
         daysArray.push({
           value: i - paddingDays,
@@ -97,27 +115,20 @@ export default function () {
           date: ''
         })
       }
+
     }
+  
     setDays(daysArray)
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) =>{
-      let todosArr = [] 
-      querySnapshot.forEach((doc) =>{
-        todosArr.push({...doc.data(), id: doc.id})
-      })
-      
-    })
-
-
-  }, [nav, events])
+    return () => unsubscribe()
+  }, [nav])
 
 
   return (
     <div>
 
       <div id="container">
-        <CalendarHeader dayDisplay={dayDisplay} onNext={() => setNav(nav + 1)} onBack={() => setNav(nav - 1)} onToday = {() => setNav(0) } nameDisplay = {auth.currentUser.email} />
-        
+        <CalendarHeader dayDisplay={dayDisplay} onNext={() => setNav(nav + 1)} onBack={() => setNav(nav - 1)} onToday={() => setNav(0)} />
+
         <div id="weekdays">
           <div>Sunday</div>
           <div>Monday</div>
@@ -147,7 +158,7 @@ export default function () {
         <NewEventModal
           onClose={() => setClick(null)}
           onSave={(title, note) => {
-            setEvents(writeUserData(title, note))
+            writeUserData(title, note)
             setClick(null);
           }}
         />
@@ -159,12 +170,11 @@ export default function () {
           eventText={eventForDate(click).title}
           onClose={() => setClick(null)}
           onDelete={() => {
-            setEvents(events.filter(e => e.date !== click));
             setClick(null);
           }}
         />
       }
-      
+
     </div>
   )
 }

@@ -7,7 +7,7 @@ export const Day = ({day, onClick}) => {
     <div onClick={onClick} className={className}>
         {day.value === 'padding' ? '' : day.value}
 
-        {day.event && <div className='event'>{day.event.title}</div>}
+        {day.event && <div className='event'>{day.event}</div>}
     </div>
   )
 }
