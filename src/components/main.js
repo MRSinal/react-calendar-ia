@@ -8,7 +8,7 @@ import { NewEventModal } from './NewEventModal.jsx'
 import { DeleteEventModal } from './DeleteEventModel.jsx'
 import { AddingNewChild } from './AddingNewChild.jsx'
 import { set, ref, getDatabase, getAuth } from 'firebase/database'
-import { query, collection, onSnapshot, getFirestore, addDoc, getDocs, where } from 'firebase/firestore'
+import { query, collection, onSnapshot, getFirestore, addDoc, deleteDoc} from 'firebase/firestore'
 export default function () {
   const db = getDatabase()
   const db2 = getFirestore()
@@ -25,24 +25,15 @@ export default function () {
   const [dayDisplay, setDayDisplay] = useState('')
   const [click, setClick] = useState()
   const [days, setDays] = useState([])
-  const [events, setEvents] = useState([]); // need to write data here as useEffect uses it 
+  const [events, setEvents] = useState(localStorage.getItem('events') ? 
+  JSON.parse(localStorage.getItem('events')) : 
+  []);
   const [todos, setTodos] = useState([])
   
 
 
-  const writeUserData2 = (title, note) => {
-    const date = click.replace("/", "")
-    const uid = date.replace("/", "")
-    const reference = ref(db, `/${auth.currentUser.uid}/${uid}`)
-    set(reference, {
-      event: title,
-      date: `${click}`,
-      note: note,
-      uid: uid
-    })
 
-  }
-  const writeUserData = (title, note) => {
+  const writeUserData = (title, note, person) => {
 
     const date = click.replace("/", "")
     const uid = date.replace("/", "")
@@ -50,20 +41,26 @@ export default function () {
       event: title,
       date: `${click}`,
       note: note,
-      uid: uid
+      uid: uid,
+      person: person
     })
   }
-  console.log(days)
-  const eventForDate = (date) => {
-    var arr = []
+  const deleteUserData = () =>{
+    deleteDoc(collection(db2, 'todos'))
+  }
+  const eventForDate2 = (date) => {
+    
     for(var i = 0; i< todos.length; i++){
       if(todos[i]?.date === date){
+        events.push(todos[i])
         return todos[i]
+        
       }
     }
   }
+  const eventForDate = date => events.find(e => e.date === date)
   useEffect(() => {
-    
+    localStorage.setItem('events', JSON.stringify(events));
     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dt = new Date();
 
@@ -118,11 +115,27 @@ export default function () {
 
     }
   
-    setDays(daysArray)
-    return () => unsubscribe()
-  }, [nav])
+    setDays(daysArray)  
+  }, [nav, events])
 
+  const [serviceList, setServiceList] = useState([{ service: "" }]);
 
+  const handleServiceChange = (e, index) => {
+    const { name, value } = e.target;
+    const list = [...serviceList];
+    list[index][name] = value;
+    setServiceList(list);
+  };
+
+  const handleServiceRemove = (index) => {
+    const list = [...serviceList];
+    list.splice(index, 1);
+    setServiceList(list);
+  };
+
+  const handleServiceAdd = () => {
+    setServiceList([...serviceList, { service: "" }]);
+  };
   return (
     <div>
 
@@ -151,14 +164,17 @@ export default function () {
           ))}
 
         </div>
-        <AddingNewChild></AddingNewChild>
+        
       </div>
       {
         click && !eventForDate(click) &&
         <NewEventModal
           onClose={() => setClick(null)}
-          onSave={(title, note) => {
-            writeUserData(title, note)
+          personName1={serviceList[0]}
+          personName2={serviceList[1]}
+          onSave={(title, note, person) => {
+            setEvents([ ...events, {title, date: click, note, person}]); 
+            writeUserData(title, note, person)
             setClick(null);
           }}
         />
@@ -168,13 +184,56 @@ export default function () {
         click && eventForDate(click) &&
         <DeleteEventModal
           eventText={eventForDate(click).title}
+          eventNote = {eventForDate(click).note}
+          eventPerson = {eventForDate(click).person}
           onClose={() => setClick(null)}
           onDelete={() => {
+            setEvents(events.filter(e => e.date !== click))
+            deleteDoc()
             setClick(null);
           }}
         />
       }
-
+      <form className="App" autoComplete="off">
+      <div className="form-field">
+        <label htmlFor="service">People</label>
+        {serviceList.map((singleService, index) => (
+          <div key={index} className="services">
+            <div className="first-division">
+              <input
+                name="service"
+                type="text"
+                id="service"
+                value={singleService.service}
+                onChange={(e) => handleServiceChange(e, index)}
+                required
+              />
+              {serviceList.length - 1 === index && serviceList.length < 2 && (
+                <button
+                  type="button"
+                  onClick={handleServiceAdd}
+                  className="add-btn"
+                >
+                  <span>Add a Person</span>
+                </button>
+              )}
+            </div>
+            <div className="second-division">
+              {serviceList.length !== 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleServiceRemove(index)}
+                  className="remove-btn"
+                >
+                  <span>Remove</span>
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      
+    </form>
     </div>
   )
 }

@@ -69,7 +69,7 @@ export default function Login() {
                         <input type="email" placeholder="Email" id='email' onChange={handleEmailChange} value={email} />
                         <input type="password" id="password" placeholder="Password" onChange={handlePasswordChange} value={password} />
                         <button onClick={handleSignIn}>SignIn</button>
-                        <a href='/register' id="signup" className="login">Sign In</a>
+                        
                         <p className="error"></p>
                         <button onClick={() => setIsRegistering(true)}>Register</button>
                     </>

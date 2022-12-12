@@ -31,7 +31,7 @@ button {
   background-color:#d36c6c;
 }
 #container {
-  width: auto;
+  width: 770px;
 }
 #weekdays {
   width: 100%;
@@ -123,6 +123,11 @@ button {
   background-color: #92a1d1;
 }
 #eventText {
+  font-size: 18px;
+  
+
+}
+#eventNote{
   font-size: 14px;
 }
 #modalBackDrop {
